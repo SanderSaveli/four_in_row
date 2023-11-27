@@ -20,5 +20,5 @@ Game
         <p id="name">Player2</p>
     </div>
 </div>
-<script src="{{ URL::asset('js/game.js') }}"></script>
+<script src="{{ mix('js/game.js') }}"></script>
 @endsection
