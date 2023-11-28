@@ -156,6 +156,7 @@ var gameConfig = {
     x: 7,
     y: 6
   },
+  gameMode: "handToHand",
   noneColor: "#454f5a",
   player1Color: "blue",
   player2Color: "red",
@@ -216,6 +217,7 @@ function start() {
   generateField();
   Canvas.resizeCanvas();
   drawCircles();
+  console.log(gameConfig.gameMode);
 }
 function generateField() {
   field = [];
@@ -298,9 +300,12 @@ function sendRequest(data) {
         console.log(response.message);
         console.log(response.answer);
         if (response.answer != null) {
-          field[response.answer.x][response.answer.y] = response.answer;
+          if (response.answer.type == "PlayerWin") {
+            console.log("Win");
+          }
+          field[response.answer.cell.x][response.answer.cell.y] = response.answer.cell;
         }
-        GameRule.updateTurn(response.answer);
+        GameRule.updateTurn(response.answer.cell);
         drawCircles();
       } else {
         console.error("There was a problem with the request.");
@@ -315,6 +320,7 @@ window.onload = function () {
 };
 window.addEventListener("resize", function () {
   Canvas.resizeCanvas();
+  drawCircles();
 });
 })();
 

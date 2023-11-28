@@ -49,11 +49,39 @@ module.exports = gameConfig;
 /******/ 	}
 /******/ 	
 /************************************************************************/
-/******/ 	
-/******/ 	// startup
-/******/ 	// Load entry module and return exports
-/******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __webpack_require__("./resources/js/gameConfig.js");
-/******/ 	
+var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
+(() => {
+/*!**************************************!*\
+  !*** ./resources/js/menuSelector.js ***!
+  \**************************************/
+var squares = document.querySelectorAll(".content-square");
+var gameConfig = __webpack_require__(/*! ./gameConfig.js */ "./resources/js/gameConfig.js");
+squares.forEach(function (square, index) {
+  square.addEventListener("click", function () {
+    deselectAll();
+    square.classList.add("square-selected");
+    switch (square.id) {
+      case "handToHand":
+        gameConfig.gameMode = "handToHand";
+        break;
+      case "online":
+        gameConfig.gameMode = "online";
+        break;
+      case "bot":
+        gameConfig.gameMode = "bot";
+        break;
+      default:
+        break;
+    }
+  });
+});
+function deselectAll() {
+  squares.forEach(function (square) {
+    square.classList.remove("square-selected");
+  });
+}
+})();
+
 /******/ })()
 ;

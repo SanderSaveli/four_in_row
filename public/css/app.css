@@ -36,6 +36,9 @@ body {
   background-color: rgb(143, 143, 143);
   transition: 0.5s;
   box-shadow: 3px 3px 3px black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .content-square:hover {
   background-color: rgb(130, 130, 130);
@@ -44,6 +47,20 @@ body {
 .content-square:active {
   box-shadow: none;
   background-color: rgb(47, 105, 221);
+}
+.content-square img {
+  width: 70%;
+}
+
+.square-selected {
+  background-color: rgb(47, 105, 221);
+  box-shadow: none;
+  pointer-events: none;
+}
+.square-selected:hover {
+  background-color: rgb(47, 105, 221);
+  box-shadow: none;
+  pointer-events: none;
 }
 
 .square-text {
@@ -72,12 +89,6 @@ body {
 .content-button:active {
   box-shadow: none;
   background-color: rgb(34, 78, 165);
-}
-
-.square-selected {
-  background-color: rgb(47, 105, 221);
-  box-shadow: none;
-  pointer-events: none;
 }
 
 .fieldCanvas {

@@ -35,11 +35,11 @@ var Canvas = /*#__PURE__*/function () {
     key: "drawCircle",
     value: function drawCircle(x, y, color) {
       this.ctx.beginPath();
-      var circlePos = GetCirclePosition({
+      var circlePos = this.GetCirclePosition({
         x: x,
         y: y
       });
-      this.ctx.arc(circlePos.x, circlePos.y, Math.min(cellWidth, cellHeight) * 0.4, 0, Math.PI * 2);
+      this.ctx.arc(circlePos.x, circlePos.y, Math.min(this.cellWidth, this.cellHeight) * 0.4, 0, Math.PI * 2);
       this.ctx.fillStyle = color;
       this.ctx.fill();
       this.ctx.closePath();
