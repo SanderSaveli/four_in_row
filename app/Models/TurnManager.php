@@ -11,9 +11,13 @@ class TurnManager extends Model
 
     public function MakeMove($data)
     {
-        if (is_array($data) && !empty($data)) {
-            return  count($data);
+        $circle = $data['move']['circle'];
+        if($circle['owner'] == "None" && $data['field'][$circle['x']][$circle['y']]['owner']!="None"){
+            $changedField = $data['field'][$circle['x']][$circle['y']];
+            $changedField['owner'] = $data['move']['actor'];
         }
-        return 0; 
+        $changedField = $circle;
+        $changedField['owner'] = $data['move']['actor'];
+        return $changedField;
     }
 }

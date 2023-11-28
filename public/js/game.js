@@ -77,8 +77,9 @@ var GameRule = /*#__PURE__*/function () {
     this.topCircles = [];
     this.circles = [];
     for (var x = 0; x < fieldWidth; x++) {
+      this.circles.push([]);
       for (var y = 0; y < fieldHeight; y++) {
-        this.circles.push({
+        this.circles[x].push({
           x: x,
           y: y,
           owner: "None"
@@ -99,10 +100,6 @@ var GameRule = /*#__PURE__*/function () {
       for (var i = 0; i < this.topCircles.length; i++) {
         if (this.topCircles[i].x == circle.x && this.topCircles[i].y == circle.y) {
           if (circle.owner === "None") {
-            circle.owner = this.playerTurn % 2 == 0 ? "Player1" : "Player2";
-            this.FindCircle(circle.x, circle.y).owner = circle.owner;
-            this.playerTurn++;
-            this.topCircles[i].y++;
             return true;
           }
         }
@@ -111,9 +108,16 @@ var GameRule = /*#__PURE__*/function () {
       return false;
     }
   }, {
+    key: "updateTurn",
+    value: function updateTurn(changedCircle) {
+      this.circles[changedCircle.x][changedCircle.y] = changedCircle;
+      this.playerTurn++;
+      this.topCircles[changedCircle.x].y++;
+    }
+  }, {
     key: "GetCircleStatus",
     value: function GetCircleStatus(x, y) {
-      var curr = this.FindCircle(x, y);
+      var curr = this.circles[x][y];
       if (curr.owner != "None") {
         return curr.owner;
       } else {
@@ -125,18 +129,14 @@ var GameRule = /*#__PURE__*/function () {
       }
     }
   }, {
-    key: "FindCircle",
-    value: function FindCircle(x, y) {
-      for (var i = 0; i < this.circles.length; i++) {
-        if (this.circles[i].x == x && this.circles[i].y == y) {
-          return this.circles[i];
-        }
-      }
-    }
-  }, {
     key: "getCircles",
     value: function getCircles() {
       return this.circles;
+    }
+  }, {
+    key: "getPlayerTurn",
+    value: function getPlayerTurn() {
+      return this.playerTurn % 2 == 0 ? "Player1" : "Player2";
     }
   }]);
   return GameRule;
@@ -272,11 +272,20 @@ function ClickOnCircle(event) {
 }
 function CircleAction(clickedCircle) {
   if (GameRule.IsCircleActivated(clickedCircle)) {
-    sendRequest();
+    sendRequest(getMoveData(clickedCircle));
   }
-  drawCircles();
 }
-function sendRequest() {
+function getMoveData(activatedCircle) {
+  var data = {
+    field: field,
+    move: {
+      circle: activatedCircle,
+      actor: GameRule.getPlayerTurn()
+    }
+  };
+  return data;
+}
+function sendRequest(data) {
   var xhr = new XMLHttpRequest();
   xhr.open("POST", "/makeMove", true);
   xhr.setRequestHeader("Content-Type", "application/json");
@@ -286,14 +295,19 @@ function sendRequest() {
     if (xhr.readyState === XMLHttpRequest.DONE) {
       if (xhr.status === 200) {
         var response = JSON.parse(xhr.responseText);
-        console.log(response.message); // Вывести сообщение из ответа
-        console.log(response.number);
+        console.log(response.message);
+        console.log(response.answer);
+        if (response.answer != null) {
+          field[response.answer.x][response.answer.y] = response.answer;
+        }
+        GameRule.updateTurn(response.answer);
+        drawCircles();
       } else {
         console.error("There was a problem with the request.");
       }
     }
   };
-  xhr.send(JSON.stringify(field));
+  xhr.send(JSON.stringify(data));
 }
 canvas.addEventListener("click", ClickOnCircle);
 window.onload = function () {

@@ -5,16 +5,18 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\TurnManager;
 
+use function PHPUnit\Framework\isNull;
+
 class TurnController extends Controller
 {
     function makeMove(Request $request){
         $data = $request->json()->all();
-        if (!empty($data) && is_array($data)) {
+        if (isset($data['field']) && isset($data['move']['circle'])) {
             $turnManager = new TurnManager();
-            $invertedArray = $turnManager->MakeMove($data); 
+            $answer = $turnManager->MakeMove($data); 
 
             return response()->json([
-                'number' => $invertedArray,
+                'answer' => $answer,
                 'message' => 'Данные успешно обработаны'
             ]);
         } else {

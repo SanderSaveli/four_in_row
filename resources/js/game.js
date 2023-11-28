@@ -84,12 +84,22 @@ function ClickOnCircle(event) {
 
 function CircleAction(clickedCircle) {
     if (GameRule.IsCircleActivated(clickedCircle)) {
-        sendRequest();
+        sendRequest(getMoveData(clickedCircle));
     }
-    drawCircles();
 }
 
-function sendRequest() {
+function getMoveData(activatedCircle) {
+    let data = {
+        field: field,
+        move: {
+            circle: activatedCircle,
+            actor: GameRule.getPlayerTurn(),
+        },
+    };
+    return data;
+}
+
+function sendRequest(data) {
     const xhr = new XMLHttpRequest();
     xhr.open("POST", "/makeMove", true);
     xhr.setRequestHeader("Content-Type", "application/json");
@@ -102,14 +112,20 @@ function sendRequest() {
         if (xhr.readyState === XMLHttpRequest.DONE) {
             if (xhr.status === 200) {
                 const response = JSON.parse(xhr.responseText);
-                console.log(response.message); // Вывести сообщение из ответа
-                console.log(response.number);
+                console.log(response.message);
+                console.log(response.answer);
+                if (response.answer != null) {
+                    field[response.answer.x][response.answer.y] =
+                        response.answer;
+                }
+                GameRule.updateTurn(response.answer);
+                drawCircles();
             } else {
                 console.error("There was a problem with the request.");
             }
         }
     };
-    xhr.send(JSON.stringify(field));
+    xhr.send(JSON.stringify(data));
 }
 
 canvas.addEventListener("click", ClickOnCircle);

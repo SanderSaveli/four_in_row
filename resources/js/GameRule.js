@@ -3,8 +3,9 @@ class GameRule {
         this.topCircles = [];
         this.circles = [];
         for (let x = 0; x < fieldWidth; x++) {
+            this.circles.push([]);
             for (let y = 0; y < fieldHeight; y++) {
-                this.circles.push({ x: x, y: y, owner: "None" });
+                this.circles[x].push({ x: x, y: y, owner: "None" });
             }
             this.topCircles.push({ x: x, y: 0, owner: "None" });
         }
@@ -19,11 +20,6 @@ class GameRule {
                 this.topCircles[i].y == circle.y
             ) {
                 if (circle.owner === "None") {
-                    circle.owner =
-                        this.playerTurn % 2 == 0 ? "Player1" : "Player2";
-                    this.FindCircle(circle.x, circle.y).owner = circle.owner;
-                    this.playerTurn++;
-                    this.topCircles[i].y++;
                     return true;
                 }
             }
@@ -32,8 +28,14 @@ class GameRule {
         return false;
     }
 
+    updateTurn(changedCircle) {
+        this.circles[changedCircle.x][changedCircle.y] = changedCircle;
+        this.playerTurn++;
+        this.topCircles[changedCircle.x].y++;
+    }
+
     GetCircleStatus(x, y) {
-        let curr = this.FindCircle(x, y);
+        let curr = this.circles[x][y];
         if (curr.owner != "None") {
             return curr.owner;
         } else {
@@ -45,16 +47,12 @@ class GameRule {
         }
     }
 
-    FindCircle(x, y) {
-        for (let i = 0; i < this.circles.length; i++) {
-            if (this.circles[i].x == x && this.circles[i].y == y) {
-                return this.circles[i];
-            }
-        }
-    }
-
     getCircles() {
         return this.circles;
+    }
+
+    getPlayerTurn() {
+        return this.playerTurn % 2 == 0 ? "Player1" : "Player2";
     }
 }
 
