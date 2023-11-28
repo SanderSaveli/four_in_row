@@ -28,7 +28,7 @@ class GameRule {
                 }
             }
         }
-        console.log("false");
+        console.log(circle);
         return false;
     }
 

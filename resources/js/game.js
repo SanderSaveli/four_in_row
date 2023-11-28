@@ -1,119 +1,91 @@
 const canvas = document.getElementById("fieldCanvas");
 const ctx = canvas.getContext("2d");
 
-const { default: axios } = require("axios");
+const gameConfig = require("./gameConfig.js");
+
+const CanvasFile = require("./Canvas.js");
+const Canvas = new CanvasFile(canvas, {
+    fieldSize: { x: gameConfig.fieldSize.x, y: gameConfig.fieldSize.y },
+    screenPercent: 0.35,
+});
+
 const GameRuleFile = require("./GameRule.js");
-let GameRule;
+const GameRule = new GameRuleFile(
+    gameConfig.fieldSize.x,
+    gameConfig.fieldSize.y
+);
+let field = [];
 
-let width, height, cellWidth, cellHeight;
-let fieldSize = {
-    x: 7,
-    y: 6,
-};
-
-GameRule = new GameRuleFile(fieldSize.x, fieldSize.y);
-let screenPercent = 0.35;
-let circles = [];
-
-let noneColor = "#454f5a";
-let player1Color = "blue";
-let player2Color = "red";
-let nextTopColor = "#ccc";
-
-function resizeCanvas() {
-    console.log("hi");
-    width = window.innerWidth * screenPercent;
-    height = (width * fieldSize.y) / fieldSize.x;
-
-    canvas.width = width;
-    canvas.height = height;
-
-    cellWidth = width / fieldSize.x;
-    cellHeight = height / fieldSize.y;
-
-    generateCircles();
+function start() {
+    generateField();
+    Canvas.resizeCanvas();
+    drawCircles();
 }
 
-function generateCircles() {
-    circles = [];
+function generateField() {
+    field = [];
 
-    for (let x = 0; x < fieldSize.x; x++) {
-        for (let y = 0; y < fieldSize.y; y++) {
-            const existingCircle = circles.find(
-                (circle) => circle.x === x && circle.y === y
-            );
-            if (!existingCircle) {
-                circles.push({ x, y, owner: "None" });
-            }
+    for (let x = 0; x < gameConfig.fieldSize.x; x++) {
+        field.push([]);
+        for (let y = 0; y < gameConfig.fieldSize.y; y++) {
+            field[x].push({ x: x, y: y, owner: "None" });
         }
     }
     drawCircles();
 }
 
-function drawCircle(x, y, color) {
-    ctx.beginPath();
-    let circlePos = GetCirclePosition({ x, y });
-    ctx.arc(
-        circlePos.x,
-        circlePos.y,
-        Math.min(cellWidth, cellHeight) * 0.4,
-        0,
-        Math.PI * 2
-    );
-    ctx.fillStyle = color;
-    ctx.fill();
-    ctx.closePath();
-}
-
 function drawCircles() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    for (let i = 0; i < circles.length; i++) {
-        const circle = circles[i];
-        drawCircle(circle.x, circle.y, GetColor(circle));
+    for (let x = 0; x < field.length; x++) {
+        for (let y = 0; y < field[x].length; y++) {
+            const circle = field[x][y];
+            Canvas.drawCircle(x, y, GetColor(circle));
+        }
     }
 }
 
-function GetCirclePosition(circle) {
-    return {
-        x: circle.x * cellWidth + cellWidth / 2,
-        y: height - (circle.y * cellHeight + cellHeight / 2),
-    };
-}
 function GetColor(circle) {
     switch (GameRule.GetCircleStatus(circle.x, circle.y)) {
         case "None":
-            return noneColor;
+            return gameConfig.noneColor;
         case "Player1":
-            return player1Color;
+            return gameConfig.player1Color;
         case "Player2":
-            return player2Color;
+            return gameConfig.player2Color;
         case "NextTop":
-            return nextTopColor;
+            return gameConfig.nextTopColor;
     }
     console.log("Сan not recognize the owner" + owner);
 }
+
 function ClickOnCircle(event) {
     const clickedX = event.clientX - canvas.offsetLeft;
     const clickedY = event.clientY - canvas.offsetTop;
-    for (let i = 0; i < circles.length; i++) {
-        let circlePos = GetCirclePosition(circles[i]);
+    for (let i = 0; i < field.length; i++) {
+        let circlePos = Canvas.GetCirclePosition(field[i][0]);
         if (
-            clickedX > circlePos.x - cellWidth / 2 &&
-            clickedX < circlePos.x + cellWidth / 2 &&
-            clickedY > circlePos.y - cellHeight / 2 &&
-            clickedY < circlePos.y + cellHeight / 2
+            clickedX > circlePos.x - Canvas.cellWidth / 2 &&
+            clickedX < circlePos.x + Canvas.cellWidth / 2
         ) {
-            CircleAction(circles[i]);
+            for (let j = 0; j < field[i].length; j++) {
+                let circlePos = Canvas.GetCirclePosition(field[i][j]);
+                if (
+                    clickedY > circlePos.y - Canvas.cellHeight / 2 &&
+                    clickedY < circlePos.y + Canvas.cellHeight / 2
+                ) {
+                    CircleAction(field[i][j]);
+                    break;
+                }
+            }
             break;
         }
     }
 }
 
 function CircleAction(clickedCircle) {
-    console.log("good");
-    GameRule.IsCircleActivated(clickedCircle);
-    sendRequest();
+    if (GameRule.IsCircleActivated(clickedCircle)) {
+        sendRequest();
+    }
     drawCircles();
 }
 
@@ -137,15 +109,15 @@ function sendRequest() {
             }
         }
     };
-    xhr.send(JSON.stringify(GameRule.getCircles()));
+    xhr.send(JSON.stringify(field));
 }
 
 canvas.addEventListener("click", ClickOnCircle);
 
 window.onload = function () {
-    resizeCanvas();
+    start();
 };
 
 window.addEventListener("resize", function () {
-    resizeCanvas();
+    Canvas.resizeCanvas();
 });
