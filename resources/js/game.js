@@ -1,6 +1,7 @@
 const canvas = document.getElementById("fieldCanvas");
 const ctx = canvas.getContext("2d");
 
+const { default: axios } = require("axios");
 const GameRuleFile = require("./GameRule.js");
 let GameRule;
 
@@ -14,10 +15,10 @@ GameRule = new GameRuleFile(fieldSize.x, fieldSize.y);
 let screenPercent = 0.35;
 let circles = [];
 
-let noneColor = "#ccc";
+let noneColor = "#454f5a";
 let player1Color = "blue";
 let player2Color = "red";
-let nextTopColor = "magenta";
+let nextTopColor = "#ccc";
 
 function resizeCanvas() {
     console.log("hi");
@@ -112,7 +113,31 @@ function ClickOnCircle(event) {
 function CircleAction(clickedCircle) {
     console.log("good");
     GameRule.IsCircleActivated(clickedCircle);
+    sendRequest();
     drawCircles();
+}
+
+function sendRequest() {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/makeMove", true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    const token = document
+        .querySelector('meta[name="csrf-token"]')
+        .getAttribute("content");
+    xhr.setRequestHeader("X-CSRF-TOKEN", token);
+
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === XMLHttpRequest.DONE) {
+            if (xhr.status === 200) {
+                const response = JSON.parse(xhr.responseText);
+                console.log(response.message); // Вывести сообщение из ответа
+                console.log(response.number);
+            } else {
+                console.error("There was a problem with the request.");
+            }
+        }
+    };
+    xhr.send(JSON.stringify(GameRule.getCircles()));
 }
 
 canvas.addEventListener("click", ClickOnCircle);

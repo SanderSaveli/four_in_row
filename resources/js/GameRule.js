@@ -52,6 +52,10 @@ class GameRule {
             }
         }
     }
+
+    getCircles() {
+        return this.circles;
+    }
 }
 
 module.exports = GameRule;

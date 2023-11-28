@@ -15,3 +15,4 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', 'App\Http\Controllers\HomeController@goHome')->name("homePage");
 Route::get('/game', 'App\Http\Controllers\GameController@goGame')->name("gamePage");
+Route::post('/makeMove', 'App\Http\Controllers\TurnController@makeMove');

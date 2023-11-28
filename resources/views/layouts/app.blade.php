@@ -15,6 +15,7 @@
     <title>@yield('title')</title>
 </head>
 <body>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <div class="wrapper">
         <div class="content">
             @yield('content')

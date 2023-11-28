@@ -75,6 +75,11 @@ var GameRule = /*#__PURE__*/function () {
         }
       }
     }
+  }, {
+    key: "getCircles",
+    value: function getCircles() {
+      return this.circles;
+    }
   }]);
   return GameRule;
 }();
