@@ -33,16 +33,25 @@ var Canvas = /*#__PURE__*/function () {
     }
   }, {
     key: "drawCircle",
-    value: function drawCircle(x, y, color) {
-      this.ctx.beginPath();
+    value: function drawCircle(x, y, type) {
       var circlePos = this.GetCirclePosition({
         x: x,
         y: y
       });
-      this.ctx.arc(circlePos.x, circlePos.y, Math.min(this.cellWidth, this.cellHeight) * 0.4, 0, Math.PI * 2);
-      this.ctx.fillStyle = color;
-      this.ctx.fill();
-      this.ctx.closePath();
+      switch (type) {
+        case "Empty":
+          this.drawOneColorCircle(circlePos, this.canvasConfig.emptyColor, 0.4);
+          break;
+        case "Player1":
+          this.drawOneColorCircle(circlePos, this.canvasConfig.player1Color, 0.4);
+          break;
+        case "Player2":
+          this.drawOneColorCircle(circlePos, this.canvasConfig.player2Color, 0.4);
+          break;
+        case "NextTop":
+          this.drawHilightedCircle(circlePos, this.canvasConfig.emptyColor, this.canvasConfig.hilightColor);
+          break;
+      }
     }
   }, {
     key: "GetCirclePosition",
@@ -51,6 +60,21 @@ var Canvas = /*#__PURE__*/function () {
         x: circle.x * this.cellWidth + this.cellWidth / 2,
         y: this.height - (circle.y * this.cellHeight + this.cellHeight / 2)
       };
+    }
+  }, {
+    key: "drawOneColorCircle",
+    value: function drawOneColorCircle(circlePos, color, cellPercent) {
+      this.ctx.beginPath();
+      this.ctx.arc(circlePos.x, circlePos.y, Math.min(this.cellWidth, this.cellHeight) * cellPercent, 0, Math.PI * 2);
+      this.ctx.fillStyle = color;
+      this.ctx.fill();
+      this.ctx.closePath();
+    }
+  }, {
+    key: "drawHilightedCircle",
+    value: function drawHilightedCircle(circlePos, circleColor, hilightColor) {
+      this.drawOneColorCircle(circlePos, circleColor, 0.4);
+      this.drawOneColorCircle(circlePos, hilightColor, 0.05);
     }
   }]);
   return Canvas;
@@ -76,6 +100,7 @@ var GameRule = /*#__PURE__*/function () {
     _classCallCheck(this, GameRule);
     this.topCircles = [];
     this.circles = [];
+    this.gameOn = true;
     for (var x = 0; x < fieldWidth; x++) {
       this.circles.push([]);
       for (var y = 0; y < fieldHeight; y++) {
@@ -121,12 +146,17 @@ var GameRule = /*#__PURE__*/function () {
       if (curr.owner != "None") {
         return curr.owner;
       } else {
-        if (curr.y == this.topCircles[curr.x].y) {
+        if (curr.y == this.topCircles[curr.x].y && this.gameOn) {
           return "NextTop";
         } else {
-          return "None";
+          return "Empty";
         }
       }
+    }
+  }, {
+    key: "gameEnd",
+    value: function gameEnd() {
+      this.gameOn = false;
     }
   }, {
     key: "getCircles",
@@ -163,6 +193,48 @@ var gameConfig = {
   nextTopColor: "#ccc"
 };
 module.exports = gameConfig;
+
+/***/ }),
+
+/***/ "./resources/js/showPopup.js":
+/*!***********************************!*\
+  !*** ./resources/js/showPopup.js ***!
+  \***********************************/
+/***/ ((module) => {
+
+function _createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it["return"] != null) it["return"](); } finally { if (didErr) throw err; } } }; }
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function showPopup(popupContainer, text, buttons) {
+  var popup = document.createElement("div");
+  popup.className = "popup";
+  var popupContent = document.createElement("div");
+  popupContent.className = "popup-content";
+  var heading = document.createElement("h2");
+  heading.textContent = text;
+  var buttonsDiv = document.createElement("div");
+  buttonsDiv.className = "popup-buttons";
+  var _iterator = _createForOfIteratorHelper(buttons),
+    _step;
+  try {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+      var element = _step.value;
+      var button = document.createElement("button");
+      button.textContent = element.text;
+      button.addEventListener("click", element.action);
+      buttonsDiv.appendChild(button);
+    }
+  } catch (err) {
+    _iterator.e(err);
+  } finally {
+    _iterator.f();
+  }
+  popupContent.appendChild(heading);
+  popupContent.appendChild(buttonsDiv);
+  popup.appendChild(popupContent);
+  popupContainer.appendChild(popup);
+}
+module.exports = showPopup;
 
 /***/ })
 
@@ -208,14 +280,18 @@ var Canvas = new CanvasFile(canvas, {
     x: gameConfig.fieldSize.x,
     y: gameConfig.fieldSize.y
   },
-  screenPercent: 0.35
+  screenPercent: 0.35,
+  emptyColor: gameConfig.noneColor,
+  player1Color: gameConfig.player1Color,
+  player2Color: gameConfig.player2Color,
+  hilightColor: gameConfig.nextTopColor
 });
 var GameRuleFile = __webpack_require__(/*! ./GameRule.js */ "./resources/js/GameRule.js");
 var GameRule = new GameRuleFile(gameConfig.fieldSize.x, gameConfig.fieldSize.y);
+var showPopup = __webpack_require__(/*! ./showPopup.js */ "./resources/js/showPopup.js");
 var field = [];
 function start() {
   generateField();
-  Canvas.resizeCanvas();
   drawCircles();
   console.log(gameConfig.gameMode);
 }
@@ -231,29 +307,15 @@ function generateField() {
       });
     }
   }
-  drawCircles();
 }
 function drawCircles() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   for (var x = 0; x < field.length; x++) {
     for (var y = 0; y < field[x].length; y++) {
       var circle = field[x][y];
-      Canvas.drawCircle(x, y, GetColor(circle));
+      Canvas.drawCircle(x, y, GameRule.GetCircleStatus(circle.x, circle.y));
     }
   }
-}
-function GetColor(circle) {
-  switch (GameRule.GetCircleStatus(circle.x, circle.y)) {
-    case "None":
-      return gameConfig.noneColor;
-    case "Player1":
-      return gameConfig.player1Color;
-    case "Player2":
-      return gameConfig.player2Color;
-    case "NextTop":
-      return gameConfig.nextTopColor;
-  }
-  console.log("Сan not recognize the owner" + owner);
 }
 function ClickOnCircle(event) {
   var clickedX = event.clientX - canvas.offsetLeft;
@@ -301,7 +363,19 @@ function sendRequest(data) {
         console.log(response.answer);
         if (response.answer != null) {
           if (response.answer.type == "PlayerWin") {
-            console.log("Win");
+            canvas.removeEventListener("click", ClickOnCircle);
+            GameRule.gameEnd();
+            showPopup(document.getElementById("popup-container"), "Игра окончена!", [{
+              text: "Back to menu",
+              action: function action() {
+                window.location.href = "/";
+              }
+            }, {
+              text: "Play again",
+              action: function action() {
+                window.location.href = "/";
+              }
+            }]);
           }
           field[response.answer.cell.x][response.answer.cell.y] = response.answer.cell;
         }

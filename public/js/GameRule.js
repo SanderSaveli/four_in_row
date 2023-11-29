@@ -18,6 +18,7 @@ var GameRule = /*#__PURE__*/function () {
     _classCallCheck(this, GameRule);
     this.topCircles = [];
     this.circles = [];
+    this.gameOn = true;
     for (var x = 0; x < fieldWidth; x++) {
       this.circles.push([]);
       for (var y = 0; y < fieldHeight; y++) {
@@ -63,12 +64,17 @@ var GameRule = /*#__PURE__*/function () {
       if (curr.owner != "None") {
         return curr.owner;
       } else {
-        if (curr.y == this.topCircles[curr.x].y) {
+        if (curr.y == this.topCircles[curr.x].y && this.gameOn) {
           return "NextTop";
         } else {
-          return "None";
+          return "Empty";
         }
       }
+    }
+  }, {
+    key: "gameEnd",
+    value: function gameEnd() {
+      this.gameOn = false;
     }
   }, {
     key: "getCircles",

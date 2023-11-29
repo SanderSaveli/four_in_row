@@ -33,16 +33,25 @@ var Canvas = /*#__PURE__*/function () {
     }
   }, {
     key: "drawCircle",
-    value: function drawCircle(x, y, color) {
-      this.ctx.beginPath();
+    value: function drawCircle(x, y, type) {
       var circlePos = this.GetCirclePosition({
         x: x,
         y: y
       });
-      this.ctx.arc(circlePos.x, circlePos.y, Math.min(this.cellWidth, this.cellHeight) * 0.4, 0, Math.PI * 2);
-      this.ctx.fillStyle = color;
-      this.ctx.fill();
-      this.ctx.closePath();
+      switch (type) {
+        case "Empty":
+          this.drawOneColorCircle(circlePos, this.canvasConfig.emptyColor, 0.4);
+          break;
+        case "Player1":
+          this.drawOneColorCircle(circlePos, this.canvasConfig.player1Color, 0.4);
+          break;
+        case "Player2":
+          this.drawOneColorCircle(circlePos, this.canvasConfig.player2Color, 0.4);
+          break;
+        case "NextTop":
+          this.drawHilightedCircle(circlePos, this.canvasConfig.emptyColor, this.canvasConfig.hilightColor);
+          break;
+      }
     }
   }, {
     key: "GetCirclePosition",
@@ -51,6 +60,21 @@ var Canvas = /*#__PURE__*/function () {
         x: circle.x * this.cellWidth + this.cellWidth / 2,
         y: this.height - (circle.y * this.cellHeight + this.cellHeight / 2)
       };
+    }
+  }, {
+    key: "drawOneColorCircle",
+    value: function drawOneColorCircle(circlePos, color, cellPercent) {
+      this.ctx.beginPath();
+      this.ctx.arc(circlePos.x, circlePos.y, Math.min(this.cellWidth, this.cellHeight) * cellPercent, 0, Math.PI * 2);
+      this.ctx.fillStyle = color;
+      this.ctx.fill();
+      this.ctx.closePath();
+    }
+  }, {
+    key: "drawHilightedCircle",
+    value: function drawHilightedCircle(circlePos, circleColor, hilightColor) {
+      this.drawOneColorCircle(circlePos, circleColor, 0.4);
+      this.drawOneColorCircle(circlePos, hilightColor, 0.05);
     }
   }]);
   return Canvas;

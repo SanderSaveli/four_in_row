@@ -7,6 +7,10 @@ const CanvasFile = require("./Canvas.js");
 const Canvas = new CanvasFile(canvas, {
     fieldSize: { x: gameConfig.fieldSize.x, y: gameConfig.fieldSize.y },
     screenPercent: 0.35,
+    emptyColor: gameConfig.noneColor,
+    player1Color: gameConfig.player1Color,
+    player2Color: gameConfig.player2Color,
+    hilightColor: gameConfig.nextTopColor,
 });
 
 const GameRuleFile = require("./GameRule.js");
@@ -14,11 +18,12 @@ const GameRule = new GameRuleFile(
     gameConfig.fieldSize.x,
     gameConfig.fieldSize.y
 );
+
+const showPopup = require("./showPopup.js");
 let field = [];
 
 function start() {
     generateField();
-    Canvas.resizeCanvas();
     drawCircles();
     console.log(gameConfig.gameMode);
 }
@@ -32,7 +37,6 @@ function generateField() {
             field[x].push({ x: x, y: y, owner: "None" });
         }
     }
-    drawCircles();
 }
 
 function drawCircles() {
@@ -40,23 +44,13 @@ function drawCircles() {
     for (let x = 0; x < field.length; x++) {
         for (let y = 0; y < field[x].length; y++) {
             const circle = field[x][y];
-            Canvas.drawCircle(x, y, GetColor(circle));
+            Canvas.drawCircle(
+                x,
+                y,
+                GameRule.GetCircleStatus(circle.x, circle.y)
+            );
         }
     }
-}
-
-function GetColor(circle) {
-    switch (GameRule.GetCircleStatus(circle.x, circle.y)) {
-        case "None":
-            return gameConfig.noneColor;
-        case "Player1":
-            return gameConfig.player1Color;
-        case "Player2":
-            return gameConfig.player2Color;
-        case "NextTop":
-            return gameConfig.nextTopColor;
-    }
-    console.log("Сan not recognize the owner" + owner);
 }
 
 function ClickOnCircle(event) {
@@ -117,7 +111,26 @@ function sendRequest(data) {
                 console.log(response.answer);
                 if (response.answer != null) {
                     if (response.answer.type == "PlayerWin") {
-                        console.log("Win");
+                        canvas.removeEventListener("click", ClickOnCircle);
+                        GameRule.gameEnd();
+                        showPopup(
+                            document.getElementById("popup-container"),
+                            "Игра окончена!",
+                            [
+                                {
+                                    text: "Back to menu",
+                                    action: function () {
+                                        window.location.href = "/";
+                                    },
+                                },
+                                {
+                                    text: "Play again",
+                                    action: function () {
+                                        window.location.href = "/";
+                                    },
+                                },
+                            ]
+                        );
                     }
                     field[response.answer.cell.x][response.answer.cell.y] =
                         response.answer.cell;

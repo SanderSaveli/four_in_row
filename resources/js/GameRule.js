@@ -2,6 +2,7 @@ class GameRule {
     constructor(fieldWidth, fieldHeight) {
         this.topCircles = [];
         this.circles = [];
+        this.gameOn = true;
         for (let x = 0; x < fieldWidth; x++) {
             this.circles.push([]);
             for (let y = 0; y < fieldHeight; y++) {
@@ -39,12 +40,16 @@ class GameRule {
         if (curr.owner != "None") {
             return curr.owner;
         } else {
-            if (curr.y == this.topCircles[curr.x].y) {
+            if (curr.y == this.topCircles[curr.x].y && this.gameOn) {
                 return "NextTop";
             } else {
-                return "None";
+                return "Empty";
             }
         }
+    }
+
+    gameEnd() {
+        this.gameOn = false;
     }
 
     getCircles() {
