@@ -59,6 +59,20 @@ class GameRule {
     getPlayerTurn() {
         return this.playerTurn % 2 == 0 ? "Player1" : "Player2";
     }
+    updateField(board) {
+        this.circles = board;
+        console.log(board);
+        for (let i = 0; i < this.topCircles.length; i++) {
+            let y = this.topCircles[i].y;
+            if (board[i][y].owner != "None") {
+                this.topCircles[i].y++;
+                if (this.topCircles[i].y > 5) {
+                    this.topCircles[i].y = 5;
+                }
+            }
+        }
+        this.playerTurn++;
+    }
 }
 
 module.exports = GameRule;

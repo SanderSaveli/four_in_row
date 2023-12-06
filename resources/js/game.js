@@ -79,7 +79,7 @@ function ClickOnCircle(event) {
 
 function CircleAction(clickedCircle) {
     if (GameRule.IsCircleActivated(clickedCircle)) {
-        sendRequest(getMoveData(clickedCircle));
+        sendMoveRequest(getMoveData(clickedCircle));
     }
 }
 
@@ -94,9 +94,25 @@ function getMoveData(activatedCircle) {
     return data;
 }
 
-function sendRequest(data) {
+function getAIData() {
+    let data = {
+        board: field,
+        player: "Player2",
+    };
+    return data;
+}
+
+function sendMoveRequest(data) {
+    sendRequestToServer(data, "/makeMove", makePlayerMove);
+}
+
+function sendMakeAIMoveRequest(data) {
+    sendRequestToServer(data, "/makeAIMove", updateFieldAfterMove);
+}
+
+function sendRequestToServer(data, url, callback) {
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", "/makeMove", true);
+    xhr.open("POST", url, true);
     xhr.setRequestHeader("Content-Type", "application/json");
     const token = document
         .querySelector('meta[name="csrf-token"]')
@@ -107,42 +123,49 @@ function sendRequest(data) {
         if (xhr.readyState === XMLHttpRequest.DONE) {
             if (xhr.status === 200) {
                 const response = JSON.parse(xhr.responseText);
-                console.log(response.message);
-                console.log(response.answer);
                 if (response.answer != null) {
-                    if (response.answer.type == "PlayerWin") {
-                        canvas.removeEventListener("click", ClickOnCircle);
-                        GameRule.gameEnd();
-                        showPopup(
-                            document.getElementById("popup-container"),
-                            "Игра окончена!",
-                            [
-                                {
-                                    text: "Back to menu",
-                                    action: function () {
-                                        window.location.href = "/";
-                                    },
-                                },
-                                {
-                                    text: "Play again",
-                                    action: function () {
-                                        window.location.href = "/";
-                                    },
-                                },
-                            ]
-                        );
-                    }
-                    field[response.answer.cell.x][response.answer.cell.y] =
-                        response.answer.cell;
+                    callback(response.answer);
                 }
-                GameRule.updateTurn(response.answer.cell);
-                drawCircles();
             } else {
                 console.error("There was a problem with the request.");
             }
         }
     };
     xhr.send(JSON.stringify(data));
+}
+
+function makePlayerMove(data) {
+    updateFieldAfterMove(data);
+    sendMakeAIMoveRequest(getAIData());
+}
+function updateFieldAfterMove(data) {
+    field = data.field;
+    console.log(field);
+    if (data.type == "PlayerWin") {
+        gameEnd();
+    }
+    console.log("Bot: " + data.evaluate);
+    GameRule.updateField(field);
+    drawCircles();
+}
+
+function gameEnd() {
+    canvas.removeEventListener("click", ClickOnCircle);
+    GameRule.gameEnd();
+    showPopup(document.getElementById("popup-container"), "Игра окончена!", [
+        {
+            text: "Back to menu",
+            action: function () {
+                window.location.href = "/";
+            },
+        },
+        {
+            text: "Play again",
+            action: function () {
+                window.location.href = "/game";
+            },
+        },
+    ]);
 }
 
 canvas.addEventListener("click", ClickOnCircle);

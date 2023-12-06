@@ -3,5 +3,6 @@
     "/js/GameRule.js": "/js/GameRule.js",
     "/js/gameConfig.js": "/js/gameConfig.js",
     "/js/Canvas.js": "/js/Canvas.js",
+    "/js/showPopup.js": "/js/showPopup.js",
     "/js/menuSelector.js": "/js/menuSelector.js"
 }

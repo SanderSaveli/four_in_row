@@ -9,79 +9,236 @@ class TurnManager extends Model
 {
     use HasFactory;
 
-    public function MakeMove($data)
-    {
+    public function MakeMove($data){
         $data = json_decode(json_encode($data));
         $circle = $data->move->circle;
-        if($circle->owner == "None" && $data->field[$circle->x][$circle->y]->owner!="None"){
-            $changedField = $data->field[$circle->x][$circle->y];
-            $changedField->owner = $data->move->actor;
+        $field = $data->field;
+        if($field[$circle->x][$circle->y]->owner=="None" && $this->isCellBelowOccupied($field, $circle->x, $circle->y)){
+            $field[$circle->x][$circle->y]->owner = $data->move->actor;
+            if($this->isWinningPosition($field)){
+                return $this->generateAnswer("PlayerWin", $field);
+            }
+            return $this->generateAnswer("TurnComplete", $field);
         }
-        $changedField = $circle;
-        $changedField->owner = $data->move->actor;
-        if($this->checkWin( $data->field, $circle)){
-            return $this->generateAnswer($changedField, "PlayerWin");
-        }
-        return $this->generateAnswer($changedField, "TurnComplete");
+        return $this->generateAnswer("TurnComplete", $field);
     }
 
-
-    private function generateAnswer($changedCell, $type){
+    private function generateAnswer($type, $board){
         return [
             'type'=> $type,
-            'cell' =>$changedCell,
+            'field' =>$board,
+            'evaluate' => "no eval" //$this->evaluatePosition($board, $player)
         ];
     }
 
-    private function checkWin($field, $cell) {
-        $x= $cell->x;
-        $y= $cell->y;
-        $owner= $cell->owner;
-        $rowCount = count($field);
-        $colCount = count($field[0]);
+    public function countAllDir($board, $player) {
+        $vertical = $this->countVertical($board, $player);
+        $horizontal = $this->countHorizontal($board, $player);
+        $diagonal = $this->countDiagonal($board, $player);
+        return $this->sumArraysByIndex([$vertical, $horizontal, $diagonal]);
+    }
+    
+    public function countVertical($board, $player) {
+        $countArray = []; 
 
-        // Проверка по горизонтали
-        $horizontalCount = 1;
-        for ($i = $x - 1; $i >= 0 && $field[$i][$y]->owner === $owner; $i--) {
-            $horizontalCount++;
-        }
-        for ($i = $x + 1; $i < $rowCount && $field[$i][$y]->owner === $owner; $i++) {
-            $horizontalCount++;
-        }
-
-        // Проверка по вертикали
-        $verticalCount = 1;
-        for ($j = $y - 1; $j >= 0 && $field[$x][$j]->owner === $owner; $j--) {
-            $verticalCount++;
-        }
-        for ($j = $y + 1; $j < $colCount && $field[$x][$j]->owner === $owner; $j++) {
-            $verticalCount++;
-        }
-
-        // Проверка по диагонали (сначала наискосок вверх-влево, затем вниз-вправо)
-        $diagCount1 = 1;
-        for ($i = $x - 1, $j = $y - 1; $i >= 0 && $j >= 0 && $field[$i][$j]->owner === $owner; $i--, $j--) {
-            $diagCount1++;
-        }
-        for ($i = $x + 1, $j = $y + 1; $i < $rowCount && $j < $colCount && $field[$i][$j]->owner === $owner; $i++, $j++) {
-            $diagCount1++;
-        }
-
-        // Проверка по диагонали (сначала наискосок вниз-влево, затем вверх-вправо)
-        $diagCount2 = 1;
-        for ($i = $x + 1, $j = $y - 1; $i < $rowCount && $j >= 0 && $field[$i][$j]->owner === $owner; $i++, $j--) {
-            $diagCount2++;
-        }
-        for ($i = $x - 1, $j = $y + 1; $i >= 0 && $j < $colCount && $field[$i][$j]->owner === $owner; $i--, $j++) {
-            $diagCount2++;
+        for ($x = 0; $x < 7; $x++) {
+            $count = 0;
+            $isOpen = false;
+            for ($y = 0; $y < 6; $y++) {
+                if($y>0){
+                    if ($board[$x][$y-1]->owner === "None") {
+                        $isOpen = true;
+                    }
+                }
+                if ($board[$x][$y]->owner == $player) {
+                    $count++;
+                }
+                else if($board[$x][$y]->owner != "None"){
+                    if($isOpen|| $count> 3){
+                        $this->increaseArray($countArray, $count);
+                    }
+                    $count =0;
+                }
+                else{
+                    $isOpen = true;
+                    break;
+                }
+            }
+            if($isOpen|| $count> 3){
+                $this->increaseArray($countArray, $count);
+            }
         }
 
-        // Проверка на выигрыш
-        if ($horizontalCount >= 4 || $verticalCount >= 4 || $diagCount1 >= 4 || $diagCount2 >= 4) {
-            return true; // Игрок выиграл
+        return $countArray;
+    }
+    public function countHorizontal($board, $player) {
+        $countArray = []; 
+        $isOpen = false;
+        for ($y = 0; $y < 6; $y++) {
+            $count = 0; 
+            for ($x = 0; $x < 7; $x++) {
+                if($x>0){
+                    if ($board[$x-1][$y]->owner === "None") {
+                        $isOpen = true;
+                    }
+                }
+                if ($board[$x][$y]->owner == $player) {
+                    $count++;
+                }
+                else if($board[$x][$y]->owner != "None"){
+                    if($isOpen || $count> 3){
+                        $this->increaseArray($countArray,$count);
+                    }
+                    $count = 0; 
+                }
+                else{
+                    $isOpen = true;
+                }
+            }
+            if($isOpen|| $count> 3){
+                $this->increaseArray($countArray,$count);
+            }
         }
 
-        return false; 
+        return $countArray;
+    }
+    public function countDiagonal($board, $player) {
+        $countArray = []; 
+        $isOpen= false;
+        for ($x = 0; $x < 7; $x++) {
+            for ($y = 0; $y < 6; $y++) {
+                if($board[$x][$y]->owner != $player){
+                    continue;
+                }
+                if($x>0 && $y>0){
+                    if ($board[$x-1][$y-1]->owner === $player) {
+                        continue;
+                    }
+                    else if($board[$x-1][$y-1]->owner === "None"){
+                        $isOpen= true;
+                    }
+                }
+                $count = 0; 
+                for($i =0; $i+$y < 6 && $i+$x < 7; $i++){
+                    if ($board[$x + $i][$y + $i]->owner === $player) {
+                        $count++;
+                    }
+                    else if($board[$x + $i][$y + $i]->owner != "None"){
+                        if($isOpen|| $count> 3){
+                            $this->increaseArray($countArray,$count);
+                        }
+                        $count = 0; 
+                        break;
+                    }
+                    else{
+                        $isOpen = true;
+                    }
+                }
+                if($isOpen|| $count> 3){
+                    $this->increaseArray($countArray,$count);
+                }
+            }
+        }
+        $isOpen= false;
+        for ($x = 0; $x <7; $x++) {
+            for ($y = 5; $y >= 0; $y--) {
+                if($board[$x][$y]->owner != $player){
+                    continue;
+                }
+                if($x > 0 && $y<5){
+                    if ($board[$x-1][$y+1]->owner === $player) {
+                        continue;
+                    }
+                    if ($board[$x-1][$y+1]->owner === "None") {
+                        $isOpen = true;
+                    }
+                }
+                $count = 0; 
+                for($i =0; $y-$i >= 0 && $x+$i < 7; $i++){
+                    if ($board[$x + $i][$y - $i]->owner === $player) {
+                        $count++;
+                    }
+                    else if($board[$x + $i][$y - $i]->owner != "None"){
+                        if($isOpen|| $count> 3){
+                            $this->increaseArray($countArray,$count);
+                        }
+                        $count = 0; 
+                        break;
+                    }
+                    else{
+                        $isOpen = true;
+                    }
+                }
+                if($isOpen|| $count> 3){
+                    $this->increaseArray($countArray,$count);
+                }
+            }
+        }
+
+        return $countArray;
     }
 
+    public function getAllMoves($board, $player){
+        $positions = [];
+        for($x = 0; $x<7; $x++){
+            for($y =0; $y <6; $y++){
+                if($board[$x][$y]->owner === "None"){
+                    $newPos = $this->deepCopy($board);
+                    $newPos[$x][$y]->owner = $player;
+                    $positions[] = $newPos;
+                    break;
+                }
+            }
+        }
+        return $positions;
+    }
+
+    public function deepCopy($originalArray) {
+        return unserialize(serialize($originalArray));
+    }
+
+
+    public function isCellBelowOccupied($board, $x, $y) {
+        if ($y === 0) {
+            return true;
+        }
+
+        return $board[$x][$y-1]->owner !== 'None' && $board[$x][$y]->owner === 'None';
+    }
+
+    public function isWinningPosition($board) {
+
+        $rowsP1 = $this->countAllDir($board, "Player1");
+        $rowsP2 = $this->countAllDir($board, "Player2");
+        if(isset($rowsP1[4])){
+            return true;
+        }
+        if(isset($rowsP2[4])){
+            return true;
+        }
+
+        return false;
+    }
+    function sumArraysByIndex($arrays) {
+        $result = [];
+
+        foreach ($arrays as $array) {
+            foreach ($array as $index => $value) {
+                if (!isset($result[$index])) {
+                    $result[$index] = 0;
+                }
+
+                $result[$index] += $value;
+            }
+        }
+
+        return $result;
+    } 
+
+    function increaseArray(&$array, $count) {
+        if ($count > 1) {
+            $ind = $count <= 4 ? $count : 4;
+            $array[$ind] = isset($array[$ind]) ? $array[$ind] + 1 : 1;
+        }
+    }
 }

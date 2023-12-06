@@ -86,6 +86,22 @@ var GameRule = /*#__PURE__*/function () {
     value: function getPlayerTurn() {
       return this.playerTurn % 2 == 0 ? "Player1" : "Player2";
     }
+  }, {
+    key: "updateField",
+    value: function updateField(board) {
+      this.circles = board;
+      console.log(board);
+      for (var i = 0; i < this.topCircles.length; i++) {
+        var y = this.topCircles[i].y;
+        if (board[i][y].owner != "None") {
+          this.topCircles[i].y++;
+          if (this.topCircles[i].y > 5) {
+            this.topCircles[i].y = 5;
+          }
+        }
+      }
+      this.playerTurn++;
+    }
   }]);
   return GameRule;
 }();
