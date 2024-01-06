@@ -133,13 +133,6 @@ var GameRule = /*#__PURE__*/function () {
       return false;
     }
   }, {
-    key: "updateTurn",
-    value: function updateTurn(changedCircle) {
-      this.circles[changedCircle.x][changedCircle.y] = changedCircle;
-      this.playerTurn++;
-      this.topCircles[changedCircle.x].y++;
-    }
-  }, {
     key: "GetCircleStatus",
     value: function GetCircleStatus(x, y) {
       var curr = this.circles[x][y];
@@ -304,11 +297,19 @@ var Canvas = new CanvasFile(canvas, {
 });
 var GameRuleFile = __webpack_require__(/*! ./GameRule.js */ "./resources/js/GameRule.js");
 var GameRule = new GameRuleFile(gameConfig.fieldSize.x, gameConfig.fieldSize.y);
+var movesNumber = 0;
+var userId = null;
+fetch("/get-user-id").then(function (response) {
+  return response.json();
+}).then(function (data) {
+  userId = data.userId;
+})["catch"]();
 var showPopup = __webpack_require__(/*! ./showPopup.js */ "./resources/js/showPopup.js");
 var field = [];
 function start() {
   generateField();
   drawCircles();
+  movesNumber = 0;
   console.log(gameConfig.gameMode);
 }
 function generateField() {
@@ -361,14 +362,17 @@ function getMoveData(activatedCircle) {
     move: {
       circle: activatedCircle,
       actor: GameRule.getPlayerTurn()
-    }
+    },
+    movesNumber: movesNumber,
+    playerID: userId
   };
   return data;
 }
 function getAIData() {
   var data = {
     board: field,
-    player: "Player2"
+    player: "Player2",
+    movesNumber: movesNumber
   };
   return data;
 }
@@ -400,15 +404,17 @@ function sendRequestToServer(data, url, callback) {
 }
 function makePlayerMove(data) {
   updateFieldAfterMove(data);
-  sendMakeAIMoveRequest(getAIData());
+  if (data.type == "PlayerWin") {
+    gameEnd();
+  } else {
+    sendMakeAIMoveRequest(getAIData());
+  }
 }
 function updateFieldAfterMove(data) {
   field = data.field;
+  movesNumber = data.movesNumber;
+  console.log(movesNumber);
   console.log(field);
-  if (data.type == "PlayerWin") {
-    gameEnd();
-  }
-  console.log("Bot: " + data.evaluate);
   GameRule.updateField(field);
   drawCircles();
 }

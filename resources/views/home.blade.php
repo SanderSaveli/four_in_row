@@ -21,7 +21,7 @@ Home
     </div>
 </div>
 <a href="{{route('gamePage')}}" class="content-button">Start game</a>
-<a href="{{route('gamePage')}}" class="content-button">Login</a>
+<a href="{{route('loginPage')}}" class="content-button">Login</a>
 <a href="{{route('gamePage')}}" class="content-button">Rules</a>
 <script src="{{ mix('js/menuSelector.js') }}"></script>
 @endsection

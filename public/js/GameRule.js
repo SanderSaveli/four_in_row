@@ -51,13 +51,6 @@ var GameRule = /*#__PURE__*/function () {
       return false;
     }
   }, {
-    key: "updateTurn",
-    value: function updateTurn(changedCircle) {
-      this.circles[changedCircle.x][changedCircle.y] = changedCircle;
-      this.playerTurn++;
-      this.topCircles[changedCircle.x].y++;
-    }
-  }, {
     key: "GetCircleStatus",
     value: function GetCircleStatus(x, y) {
       var curr = this.circles[x][y];

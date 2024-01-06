@@ -4,7 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
+use App\Models\Game;
+use Illuminate\Support\Facades\Auth;
 class TurnManager extends Model
 {
     use HasFactory;
@@ -13,20 +14,25 @@ class TurnManager extends Model
         $data = json_decode(json_encode($data));
         $circle = $data->move->circle;
         $field = $data->field;
+        $movesNumber = $data->movesNumber;
+        $playerID = $data->playerID;
         if($field[$circle->x][$circle->y]->owner=="None" && $this->isCellBelowOccupied($field, $circle->x, $circle->y)){
             $field[$circle->x][$circle->y]->owner = $data->move->actor;
+            $movesNumber++;
             if($this->isWinningPosition($field)){
-                return $this->generateAnswer("PlayerWin", $field);
+                $this->saveGame($movesNumber, $playerID);
+                return $this->generateAnswer("PlayerWin", $field, $movesNumber);
             }
-            return $this->generateAnswer("TurnComplete", $field);
+            return $this->generateAnswer("TurnComplete", $field, $movesNumber);
         }
-        return $this->generateAnswer("TurnComplete", $field);
+        return $this->generateAnswer("TurnComplete", $field, $movesNumber);
     }
 
-    private function generateAnswer($type, $board){
+    private function generateAnswer($type, $board, $movesNumber){
         return [
             'type'=> $type,
-            'field' =>$board,
+            'movesNumber' => $movesNumber,
+            'field' => $board,
             'evaluate' => "no eval" //$this->evaluatePosition($board, $player)
         ];
     }
@@ -50,7 +56,7 @@ class TurnManager extends Model
                         $isOpen = true;
                     }
                 }
-                if ($board[$x][$y]->owner == $player) {
+                if ($board[$x][$y]->owner === $player) {
                     $count++;
                 }
                 else if($board[$x][$y]->owner != "None"){
@@ -82,7 +88,7 @@ class TurnManager extends Model
                         $isOpen = true;
                     }
                 }
-                if ($board[$x][$y]->owner == $player) {
+                if ($board[$x][$y]->owner === $player) {
                     $count++;
                 }
                 else if($board[$x][$y]->owner != "None"){
@@ -240,5 +246,17 @@ class TurnManager extends Model
             $ind = $count <= 4 ? $count : 4;
             $array[$ind] = isset($array[$ind]) ? $array[$ind] + 1 : 1;
         }
+    }
+
+    function saveGame($movesNumber, $winnerId) {
+        $user = Auth::user();
+        $finishedGame = new Game([
+            'MovesNumber' => $movesNumber,
+            'Player1ID' => $user->UserID,
+            'Player2ID' => 1,
+            'WinnerID' => $winnerId
+        ]);
+
+        $finishedGame->save();
     }
 }

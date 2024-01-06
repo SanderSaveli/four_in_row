@@ -5,7 +5,7 @@ Game
 @endsection 
 
 @section('content')
-
+<div id="user-id" data-user-id="{{ session('userId') }}"></div>
 <h1>Four in a row</h1>
 <div class="content-row flexUp">
     <div class="content-column">

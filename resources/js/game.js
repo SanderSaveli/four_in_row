@@ -18,6 +18,14 @@ const GameRule = new GameRuleFile(
     gameConfig.fieldSize.x,
     gameConfig.fieldSize.y
 );
+let movesNumber = 0;
+var userId = null;
+fetch("/get-user-id")
+    .then((response) => response.json())
+    .then((data) => {
+        userId = data.userId;
+    })
+    .catch();
 
 const showPopup = require("./showPopup.js");
 let field = [];
@@ -25,6 +33,7 @@ let field = [];
 function start() {
     generateField();
     drawCircles();
+    movesNumber = 0;
     console.log(gameConfig.gameMode);
 }
 
@@ -90,6 +99,8 @@ function getMoveData(activatedCircle) {
             circle: activatedCircle,
             actor: GameRule.getPlayerTurn(),
         },
+        movesNumber: movesNumber,
+        playerID: userId,
     };
     return data;
 }
@@ -98,6 +109,7 @@ function getAIData() {
     let data = {
         board: field,
         player: "Player2",
+        movesNumber: movesNumber,
     };
     return data;
 }
@@ -136,15 +148,18 @@ function sendRequestToServer(data, url, callback) {
 
 function makePlayerMove(data) {
     updateFieldAfterMove(data);
-    sendMakeAIMoveRequest(getAIData());
+    if (data.type == "PlayerWin") {
+        gameEnd();
+    } else {
+        sendMakeAIMoveRequest(getAIData());
+    }
 }
 function updateFieldAfterMove(data) {
     field = data.field;
+    movesNumber = data.movesNumber;
+    console.log(movesNumber);
     console.log(field);
-    if (data.type == "PlayerWin") {
-        gameEnd();
-    }
-    console.log("Bot: " + data.evaluate);
+
     GameRule.updateField(field);
     drawCircles();
 }

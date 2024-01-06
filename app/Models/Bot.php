@@ -10,6 +10,8 @@ class Bot extends Model
 {
     use HasFactory;
     private $turnManager;
+    private $myWinNum = 0;
+    private $enemyWinNum = 0;
 
     function __construct()
     {
@@ -19,14 +21,17 @@ class Bot extends Model
         $data = json_decode(json_encode($data));
         $board = $data->board;
         $player = $data->player;
-        $pos = $this->make_AIMove($board, $player);
+        $movesNumber = $data->movesNumber;
+        $pos = $this->getBestMove($board, $player);
+        $data->movesNumber++;
         if($this->turnManager->isWinningPosition($pos)){
-            return $this->generateAIAnswer("PlayerWin", $pos, $player);
+           $this->turnManager->saveGame($data->movesNumber, 1);
+            return $this->generateAIAnswer("PlayerWin", $pos, $player, $movesNumber);
         }
-        return $this->generateAIAnswer("TurnComplete", $pos, $player);
+        return $this->generateAIAnswer("TurnComplete", $pos, $player, $movesNumber);
     }
 
-    private function make_AIMove($board, $player){
+    private function getBestMove($board, $player){
         $maxEval = -INF;
         $bestPos = 0;
         foreach($this->turnManager->getAllMoves($board, $player) as $position){
@@ -39,19 +44,30 @@ class Bot extends Model
         return $bestPos;
     }
 
-    private function generateAiAnswer($type, $board, $player){
+    private function generateAiAnswer($type, $board, $player, $movesNumber){
         return [
             'type'=> $type,
             'field' => $board,
             'evaluate' => $this->evaluatePosition($board, $player),
+            'MyWin' => $this->myWinNum, 
+            'EnemyWin' => $this->enemyWinNum, 
+            'movesNumber' => $movesNumber
         ];
     }
 
     private function minimax($board, $dept, $isMaximizing, $player){
-        if($dept ==0 || $this->turnManager->isWinningPosition($board, $player)){
+        if($this->turnManager->isWinningPosition($board)){
+            if($isMaximizing){
+                return -100000;
+            }
+            else{
+                return 100000;
+            }
+        }
+        if($dept === 0){
             return $this->evaluatePosition($board, $player);
         }
-
+        $opponent = ($player === 'Player1') ? 'Player2' : 'Player1';
         if($isMaximizing){
             $maxEval= -INF;
             foreach($this->turnManager->getAllMoves($board, $player) as $position){
@@ -62,7 +78,7 @@ class Bot extends Model
         }
         else{
             $minEval= INF;
-            foreach($this->turnManager->getAllMoves($board, 'Player2') as $position){
+            foreach($this->turnManager->getAllMoves($board, $opponent) as $position){
                 $eval =$this->minimax($position, $dept-1, true, $player);
                 $minEval= min($minEval, $eval);
             }
@@ -70,7 +86,7 @@ class Bot extends Model
         }
     }
 
-        private function evaluatePosition($board, $player) {
+    private function evaluatePosition($board, $player) {
         $opponent = ($player === 'Player1') ? 'Player2' : 'Player1';
         $playerScore = 0;
         $opponentScore= 0;

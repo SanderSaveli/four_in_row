@@ -29,12 +29,6 @@ class GameRule {
         return false;
     }
 
-    updateTurn(changedCircle) {
-        this.circles[changedCircle.x][changedCircle.y] = changedCircle;
-        this.playerTurn++;
-        this.topCircles[changedCircle.x].y++;
-    }
-
     GetCircleStatus(x, y) {
         let curr = this.circles[x][y];
         if (curr.owner != "None") {

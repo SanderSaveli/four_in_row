@@ -17,8 +17,10 @@
 <body>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <div class="wrapper">
-        <div class="content">
-            @yield('content')
+        <div class="container">
+            <div class="content">
+                @yield('content')
+            </div>
         </div>
     </div>
 </body>
