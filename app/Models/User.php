@@ -28,12 +28,12 @@ class User extends Authenticatable
 
     public function games()
     {
-        return $this->hasMany(Game::class, 'Player1ID')->orWhere('Player2ID', $this->id);
+        return Game::where('Player1ID', $this->UserID)->orWhere('Player2ID', $this->UserID);
     }
 
     public function wonGames()
     {
-        return $this->games()->where('WinnerID', $this->id);
+        return Game::where('WinnerID', $this->UserID);
     }
 
     public function getWinPercentage()
@@ -41,6 +41,6 @@ class User extends Authenticatable
         $totalGames = $this->games()->count();
         $wonGames = $this->wonGames()->count();
 
-        return ($totalGames > 0) ? ($wonGames / $totalGames) * 100 : 0;
+        return ($totalGames > 0) ? ($wonGames/$totalGames)*100 : 0;
     }
 }

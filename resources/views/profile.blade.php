@@ -5,7 +5,7 @@ Registration
 @endsection 
 
 @section('content')
-  <a href="{{route('homePage')}}" class= "top-left-link">
+  <a href="{{route('homePage')}}" class= "top-right-link">
     <img src="/img/images/home.svg" alt="IMG">
   </a>
   <div class="profile-header">
@@ -34,7 +34,7 @@ Registration
       </thead>
               <tbody>
             @foreach ($games as $game)
-            <tr class="{{ ($game->WinnerID === $userId) ? 'win' : (($game->WinnerID === null) ? 'draw' : 'lose') }}">
+            <tr class="{{ ($game->WinnerID === $userId) ? 'win' : (($game->WinnerID === null) ? 'draw' : 'loss') }}">
                 <td>
                     @if ($game->WinnerID === $userId)
                         Win
@@ -57,4 +57,8 @@ Registration
         </tbody>
     </table>
   </div>
+  <form action="{{ route('logout') }}" method="POST">
+    @csrf
+    <button type="submit">Logout</button>
+</form>
 @endsection

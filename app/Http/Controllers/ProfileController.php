@@ -21,7 +21,7 @@ class ProfileController extends Controller
             return view('profile',['username' => $user->Username, 'rating'=> $user->rating,"gamesPlayed" => $gamePlayed, "winPercentage" => $winPercentage, 'games' => $games, 'userId' => $user->UserID]);
         }
          else{
-            return view('profile',['username' => "NONE"]);
-    }
+            return view('login');
+        }
     }
 }

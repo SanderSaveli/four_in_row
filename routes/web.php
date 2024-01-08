@@ -25,3 +25,4 @@ Route::post('/makeAIMove', 'App\Http\Controllers\TurnController@makeAIMove');
 Route::get('/get-user-id', function () {
     return response()->json(['userId' => auth()->id()]);
 });
+Route::post('/logout', 'App\Http\Controllers\Auth\LoginController@logout')->name('logout');
