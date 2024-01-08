@@ -30,7 +30,7 @@ Home
 <div id="rulesModal" class="modal">
   <div class="modal-content">
     <span class="close">&times;</span>
-    <h2>Правила игры "4 в ряд"</h2>
+    <h2>Rules</h2>
     <p id="rulesText"></p>
   </div>
 </div>

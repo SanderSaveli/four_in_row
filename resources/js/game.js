@@ -34,7 +34,7 @@ function start() {
     generateField();
     drawCircles();
     movesNumber = 0;
-    console.log(gameConfig.gameMode);
+    console.log(getMoveData(1));
 }
 
 function generateField() {
@@ -129,6 +129,7 @@ function sendRequestToServer(data, url, callback) {
     const token = document
         .querySelector('meta[name="csrf-token"]')
         .getAttribute("content");
+    console.log(token);
     xhr.setRequestHeader("X-CSRF-TOKEN", token);
 
     xhr.onreadystatechange = function () {

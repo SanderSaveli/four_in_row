@@ -1,88 +1,6 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ "./resources/js/Canvas.js":
-/*!********************************!*\
-  !*** ./resources/js/Canvas.js ***!
-  \********************************/
-/***/ ((module) => {
-
-function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, _toPropertyKey(descriptor.key), descriptor); } }
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
-function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return _typeof(key) === "symbol" ? key : String(key); }
-function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
-var Canvas = /*#__PURE__*/function () {
-  function Canvas(canvas, canvasConfig) {
-    _classCallCheck(this, Canvas);
-    this.canvas = canvas;
-    this.canvasConfig = canvasConfig;
-    this.ctx = canvas.getContext("2d");
-    this.resizeCanvas();
-  }
-  _createClass(Canvas, [{
-    key: "resizeCanvas",
-    value: function resizeCanvas() {
-      this.width = window.innerWidth * this.canvasConfig.screenPercent;
-      this.height = this.width * this.canvasConfig.fieldSize.y / this.canvasConfig.fieldSize.x;
-      this.canvas.width = this.width;
-      this.canvas.height = this.height;
-      this.cellWidth = this.width / this.canvasConfig.fieldSize.x;
-      this.cellHeight = this.height / this.canvasConfig.fieldSize.y;
-    }
-  }, {
-    key: "drawCircle",
-    value: function drawCircle(x, y, type) {
-      var circlePos = this.GetCirclePosition({
-        x: x,
-        y: y
-      });
-      switch (type) {
-        case "Empty":
-          this.drawOneColorCircle(circlePos, this.canvasConfig.emptyColor, 0.4);
-          break;
-        case "Player1":
-          this.drawOneColorCircle(circlePos, this.canvasConfig.player1Color, 0.4);
-          break;
-        case "Player2":
-          this.drawOneColorCircle(circlePos, this.canvasConfig.player2Color, 0.4);
-          break;
-        case "NextTop":
-          this.drawHilightedCircle(circlePos, this.canvasConfig.emptyColor, this.canvasConfig.hilightColor);
-          break;
-      }
-    }
-  }, {
-    key: "GetCirclePosition",
-    value: function GetCirclePosition(circle) {
-      return {
-        x: circle.x * this.cellWidth + this.cellWidth / 2,
-        y: this.height - (circle.y * this.cellHeight + this.cellHeight / 2)
-      };
-    }
-  }, {
-    key: "drawOneColorCircle",
-    value: function drawOneColorCircle(circlePos, color, cellPercent) {
-      this.ctx.beginPath();
-      this.ctx.arc(circlePos.x, circlePos.y, Math.min(this.cellWidth, this.cellHeight) * cellPercent, 0, Math.PI * 2);
-      this.ctx.fillStyle = color;
-      this.ctx.fill();
-      this.ctx.closePath();
-    }
-  }, {
-    key: "drawHilightedCircle",
-    value: function drawHilightedCircle(circlePos, circleColor, hilightColor) {
-      this.drawOneColorCircle(circlePos, circleColor, 0.4);
-      this.drawOneColorCircle(circlePos, hilightColor, 0.05);
-    }
-  }]);
-  return Canvas;
-}();
-module.exports = Canvas;
-
-/***/ }),
-
 /***/ "./resources/js/GameRule.js":
 /*!**********************************!*\
   !*** ./resources/js/GameRule.js ***!
@@ -283,7 +201,7 @@ var __webpack_exports__ = {};
 var canvas = document.getElementById("fieldCanvas");
 var ctx = canvas.getContext("2d");
 var gameConfig = __webpack_require__(/*! ./gameConfig.js */ "./resources/js/gameConfig.js");
-var CanvasFile = __webpack_require__(/*! ./Canvas.js */ "./resources/js/Canvas.js");
+var CanvasFile = __webpack_require__(Object(function webpackMissingModule() { var e = new Error("Cannot find module './Canvas.js'"); e.code = 'MODULE_NOT_FOUND'; throw e; }()));
 var Canvas = new CanvasFile(canvas, {
   fieldSize: {
     x: gameConfig.fieldSize.x,
@@ -310,7 +228,7 @@ function start() {
   generateField();
   drawCircles();
   movesNumber = 0;
-  console.log(gameConfig.gameMode);
+  console.log(getMoveData(1));
 }
 function generateField() {
   field = [];
@@ -387,6 +305,7 @@ function sendRequestToServer(data, url, callback) {
   xhr.open("POST", url, true);
   xhr.setRequestHeader("Content-Type", "application/json");
   var token = document.querySelector('meta[name="csrf-token"]').getAttribute("content");
+  console.log(token);
   xhr.setRequestHeader("X-CSRF-TOKEN", token);
   xhr.onreadystatechange = function () {
     if (xhr.readyState === XMLHttpRequest.DONE) {
